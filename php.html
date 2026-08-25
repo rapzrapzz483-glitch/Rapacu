@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Untukmu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=Literata:ital,wght@0,300;0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #f3e9da;
+    --ink-dim: #cbbfae;
+    --night: #1b1826;
+    --night-2: #241f34;
+    --night-3: #2e2740;
+    --amber: #e3a15b;
+    --amber-soft: #f0c78a;
+    --rose: #c17b7f;
+    --line: rgba(243,233,218,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: radial-gradient(ellipse 120% 80% at 50% -10%, var(--night-3), var(--night) 55%);
+    color: var(--ink);
+    font-family: 'Literata', serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ambient dust motes */
+  .motes{position:fixed; inset:0; pointer-events:none; z-index:0;}
+  .mote{
+    position:absolute; width:3px; height:3px; border-radius:50%;
+    background: var(--amber-soft); opacity:0.35;
+    animation: drift linear infinite;
+  }
+  @keyframes drift{
+    from{ transform: translateY(0) translateX(0); opacity:0;}
+    10%{opacity:0.5;}
+    90%{opacity:0.3;}
+    to{ transform: translateY(-100vh) translateX(20px); opacity:0;}
+  }
+
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:0.7rem;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color: var(--amber);
+    opacity:0.8;
+  }
+
+  /* ---------- ENVELOPE (hero / gate) ---------- */
+  #gate{
+    position:relative; z-index:2;
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding:2rem;
+    transition: opacity 0.9s ease, filter 0.9s ease;
+  }
+  #gate.hidden{ opacity:0; filter: blur(6px); pointer-events:none; position:absolute; inset:0;}
+
+  .envelope-wrap{
+    width:min(320px, 78vw);
+    aspect-ratio: 3/2;
+    position:relative;
+    margin: 2.4rem 0 2.8rem;
+    cursor:pointer;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.45));
+  }
+  .env-body{
+    position:absolute; inset:0;
+    background: linear-gradient(160deg, #e9dcc4, #d8c6a3);
+    border-radius: 4px;
+  }
+  .env-flap{
+    position:absolute; top:0; left:0; right:0; height:55%;
+    background: linear-gradient(160deg, #f2e7d1, #e2d1ab);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform 1s cubic-bezier(.6,.1,.2,1);
+    z-index:2;
+  }
+  .envelope-wrap.open .env-flap{ transform: rotateX(180deg); }
+  .seal{
+    position:absolute; left:50%; top:38%; width:44px; height:44px;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(circle at 35% 30%, var(--rose), #8a3f45);
+    border-radius:50%; z-index:3;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-style:italic; color:#f3e9da; font-size:1.1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .envelope-wrap.open .seal{ opacity:0; transform: translate(-50%,-50%) scale(0.5); }
+
+  .gate-title{
+    font-family:'Fraunces', serif; font-weight:300; font-style:italic;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    color: var(--ink);
+    margin-top:0.5rem;
+  }
+  .gate-hint{
+    margin-top:0.8rem; font-family:'Space Mono', monospace; font-size:0.72rem;
+    letter-spacing:0.15em; text-transform:uppercase; color: var(--ink-dim);
+    opacity:0.7;
+  }
+
+  /* ---------- LETTER ---------- */
+  #letter{
+    position:relative; z-index:2;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 6rem 1.6rem 8rem;
+    opacity:0;
+    transform: translateY(24px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  #letter.visible{ opacity:1; transform:translateY(0); }
+
+  .letter-head{ margin-bottom:3.4rem; }
+  .letter-date{
+    font-family:'Space Mono', monospace; font-size:0.75rem; letter-spacing:0.1em;
+    color: var(--ink-dim); margin-bottom:1.2rem;
+  }
+  .letter-salutation{
+    font-family:'Fraunces', serif; font-weight:500; font-style:italic;
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    color: var(--amber-soft);
+  }
+
+  .para{
+    font-size: 1.08rem; line-height:1.85; color: var(--ink);
+    margin-bottom:1.6rem; font-weight:300;
+    opacity:0; transform: translateY(14px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .para.reveal{ opacity:1; transform:translateY(0); }
+  .para strong{ color: var(--amber-soft); font-weight:500; }
+
+  .editme{
+    border-bottom: 1px dashed var(--rose);
+    color: var(--rose);
+    padding: 0 2px;
+    cursor: text;
+  }
+
+  /* timeline of memories */
+  .timeline{
+    margin: 3.5rem 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding: 2.4rem 0;
+  }
+  .tl-item{
+    display:grid; grid-template-columns: 90px 1fr; gap:1.2rem;
+    padding: 1.1rem 0;
+    opacity:0; transform: translateX(-10px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .tl-item.reveal{ opacity:1; transform:translateX(0); }
+  .tl-item + .tl-item{ border-top:1px solid var(--line); }
+  .tl-mark{
+    font-family:'Space Mono', monospace; font-size:0.72rem; color: var(--amber);
+    letter-spacing:0.05em; padding-top:0.15rem;
+  }
+  .tl-text{ font-size:0.98rem; line-height:1.7; color: var(--ink-dim); font-weight:300; }
+
+  /* closing */
+  .signoff{ margin-top:3.6rem; }
+  .signoff .para{ margin-bottom:0.4rem; }
+  .signature{
+    font-family:'Fraunces', serif; font-style:italic; font-weight:500;
+    font-size:1.6rem; color: var(--amber-soft); margin-top:1.6rem;
+  }
+
+  /* CTA */
+  .cta-block{
+    margin-top: 4.2rem; padding-top: 2.6rem; border-top:1px solid var(--line);
+    text-align:center;
+  }
+  .cta-lead{
+    font-family:'Fraunces', serif; font-style:italic; font-weight:400;
+    font-size:1.3rem; color:var(--ink); margin-bottom:2rem;
+  }
+  .cta-row{ display:flex; gap:0.9rem; justify-content:center; flex-wrap:wrap; }
+  .btn{
+    font-family:'Space Mono', monospace; font-size:0.78rem; letter-spacing:0.08em;
+    text-transform:uppercase; padding: 0.9rem 1.6rem; border-radius:2px;
+    border:1px solid var(--line); background:transparent; color:var(--ink);
+    cursor:pointer; transition: all 0.3s ease; text-decoration:none; display:inline-block;
+  }
+  .btn.primary{ background: var(--amber); border-color: var(--amber); color:#221a12; font-weight:700; }
+  .btn.primary:hover{ background: var(--amber-soft); transform: translateY(-2px); }
+  .btn.ghost:hover{ border-color: var(--ink); background: rgba(243,233,218,0.06); }
+
+  .response{
+    margin-top:1.6rem; min-height:1.6rem; font-family:'Space Mono', monospace;
+    font-size:0.8rem; color: var(--amber-soft); opacity:0; transition:opacity 0.5s ease;
+  }
+  .response.show{ opacity:1; }
+
+  footer{
+    position:relative; z-index:2; text-align:center; padding: 2rem 1rem 3rem;
+    font-family:'Space Mono', monospace; font-size:0.68rem; color: var(--ink-dim); opacity:0.5;
+    letter-spacing:0.05em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="motes" id="motes"></div>
+
+<!-- GATE / ENVELOPE -->
+<section id="gate">
+  <p class="eyebrow">kancut mank ujank yng tersimpan lama</p>
+  <div class="envelope-wrap" id="envelope">
+    <div class="env-body"></div>
+    <div class="env-flap"></div>
+    <div class="seal">✦</div>
+  </div>
+  <h1 class="gate-title">Untuk <span class="editme" contenteditable="true">Araa</span></h1>
+  <p class="gate-hint">Pencet amplop nya met</p>
+</section>
+
+<!-- LETTER -->
+<section id="letter">
+  <div class="letter-head">
+    <p class="letter-date">— Malam keos ini kuterasa sepii —</p>
+    <p class="letter-salutation">Hii, <span class="editme" contenteditable="true">Araa</span>.</p>
+  </div>
+
+  <p class="para">gweh cuma mau bilang makasih ya nyettt.makasih karna dulu pernah hadir di hidup gwee *meskipun virtu AWKAOKW* pernah jadi bagian dari cerita gw yg sekarang cuma jadi bayangan,ASEEK. walaupun hub kita selese ye tapi gw gaperna nyesel kenal ma orang kek lu.yang cantik,sabar,cengeng,lemah lembut,jamet,seksi dikit AWKAOWK.</p>
+
+  <p class="para">tenang ajee, gw bkin ginian bukan mao minta balikan ato apaa *tapi klo lu mau ya gass*:v. gwe cuma kepikiran kalo waktu tu berasa cepet banget yak? dulu hampir tiap hari kite saling tuker chat,apaun di bahas.lahkk sekarang mah udah di jalan masing masing.</span>.</p>
+
+  <p class="para">moga lu bae bae aja dh,semoga yang lgi lu perjuangin bisa tercapai.kalau hidup lu sekarang lebih bahagia, gw mah ikut seneng.</p>
+
+  <p class="para">kadang emang gak semua orang yang datang harus menetap.Ada yang mampir buat ngasih perlajaran,kenangan,terus lanjut ke destinasi wisata berikutnya.jadiiii yaudah lahhh, gua cuma mau bilang terima kasih dan semoga lu dapet hal hal yang ga bkin lu nangis lagi *cengeng* gw selalu berdoa buat orang yang pernah gw anggap rumah.jadi,meskipun lu bukan orang yang gw anggap rumah lagi yak,tapi ttp aja gw bakal doain yang terbaik buat lu</p>
+
+  <p class="para">DAH AH CAPEEEEE,ABIS TOPIC,GABISA LONG TEKS.</p>
+</section>
+
+<footer>di tulis dalam keadaan lapar dan haus</footer>
+
+<script>
+  // ambient motes
+  const motesEl = document.getElementById('motes');
+  for(let i=0;i<24;i++){
+    const m = document.createElement('div');
+    m.className='mote';
+    m.style.left = Math.random()*100+'vw';
+    m.style.bottom = '-10px';
+    m.style.animationDuration = (14+Math.random()*16)+'s';
+    m.style.animationDelay = (Math.random()*18)+'s';
+    motesEl.appendChild(m);
+  }
+
+  // envelope open -> reveal letter
+  const envelope = document.getElementById('envelope');
+  const gate = document.getElementById('gate');
+  const letter = document.getElementById('letter');
+  envelope.addEventListener('click', () => {
+    if(envelope.classList.contains('open')) return;
+    envelope.classList.add('open');
+    setTimeout(() => {
+      gate.classList.add('hidden');
+      letter.classList.add('visible');
+      window.scrollTo({top: letter.offsetTop - 20, behavior:'smooth'});
+      revealOnScroll();
+    }, 750);
+  });
+
+  // scroll reveal for paragraphs and timeline
+  function revealOnScroll(){
+    const targets = document.querySelectorAll('.para, .tl-item');
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('reveal'); io.unobserve(e.target); }
+      });
+    }, {threshold:0.2});
+    targets.forEach(t=>io.observe(t));
+  }
+
+  function respond(kind){
+    const el = document.getElementById('resp');
+    const messages = {
+      yes: 'Terima kasih sudah percaya sekali lagi. Hubungi dia langsung, ya.',
+      time: 'Tidak apa-apa. Beri dia waktu tanpa menekan — biarkan halaman ini menunggu.',
+      no: 'Terima kasih sudah membaca sampai akhir. Hormati keputusannya.'
+    };
+    el.textContent = messages[kind];
+    el.classList.add('show');
+  }
+</script>
+
+</body>
+</html>
